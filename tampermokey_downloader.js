@@ -1,4 +1,3 @@
-
 let sended = 0
 
 const post = (content) => {
