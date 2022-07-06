@@ -14,13 +14,13 @@ const post = (content) => {
 let imgs = document.querySelectorAll('.antibotlinks')
 for (let img of imgs) {
     let data = img.querySelector('img').src.slice(22)
-    let content = {name: "responses", imgData: data};
+    let content = {name: "unclassified", imgData: data};
     post(content)
 }
 
 setTimeout(() => {
     let data = document.querySelector('form').querySelector('img').src.slice(22)
-    let content = {name: 'questions', imgData: data}
+    let content = {name: 'mixed', imgData: data}
     post(content)
 }, 2000)
 

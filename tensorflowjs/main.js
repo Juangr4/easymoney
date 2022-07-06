@@ -1,6 +1,7 @@
-const MODEL_URL = 'https://tmpfiles.org/338722/model.json';
 
-const model = tf.loadGraphModelSync(MODEL_URL);
+const reshape = (tensor) => {
+    return tf.image.resizeBilinear(tensor, [40, 40]).reshape([1, 40, 40, 1]);
+}
 
 const rgb2gray = (tensor) => {
 
@@ -20,12 +21,13 @@ const rgb2gray = (tensor) => {
 
 }
 
-let imgs = document.querySelectorAll('.antibotlinks')
-for (let img of imgs) {
-    let data = img.querySelector('img');
-    let imgTensor = rgb2gray(tf.browser.fromPixels(data));
-    imgTensor = tf.image.resizeBilinear(imgTensor, [40, 40]);
-    tf.browser.toPixels(imgTensor).then(res => {
-        console.log(atob(res));
-    });
+let img = document.getElementById('img');
+let canvas = document.getElementById('board');
+
+let joined_image = tf.browser.fromPixels(img);
+let [h, w, channels] = joined_image.shape;
+let size = Math.floor(w/3);
+for(let i=0; i<3; i++) {
+    let start = size*i;
+    let cropped = rgb2gray(tf.slice(joined_image, [0, start], [h, size]))
 }
