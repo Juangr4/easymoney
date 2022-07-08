@@ -20,14 +20,28 @@ const rgb2gray = (tensor) => {
 
 }
 
-const convertPrediction = (tensor) => {
-    return tf.argMax(tensor, 1).dataSync()[0];
+const generate_numbers = (preds) => {
+    let x = tf.concat(preds)
+    let y = tf.argMax(x).dataSync();
+    let numbers = [0, 0, 0]
+
+    for(let i=0;i<3;i++) {
+        numbers[y[i]] = i
+    }
+
+    return numbers;
 }
 
+const getRandomTime = (min, max) => {
+    return Math.random() * (max - min) + min;
+}
 
-const MODEL_URL = 'https://raw.githubusercontent.com/Juangr4/easymoney/master/tfjs_model/model.json';
+const delay = (time) => {
+    return new Promise(resolve => setTimeout(resolve, time));
+}
 
-tf.loadGraphModel(MODEL_URL).then(model => {
+const start = async (model) => {
+    
     // All clickable buttons
     let predictions = []
     let buttons = []
@@ -38,12 +52,11 @@ tf.loadGraphModel(MODEL_URL).then(model => {
         let imgTensor = rgb2gray(tf.browser.fromPixels(data));
         imgTensor = reshape(imgTensor);
         let prediction = model.predict(imgTensor);
-        predictions.push(convertPrediction(prediction));
+        predictions.push(prediction);
         buttons.push(img.children[0]);
     }
-    console.log('Numbers detected');
-    console.log(predictions);
-
+    let numbers = generate_numbers(predictions);
+    
     // The numbers order that must be clicked
     let order = [];
     let form = document.querySelector('form');
@@ -55,12 +68,30 @@ tf.loadGraphModel(MODEL_URL).then(model => {
         let start = size*i;
         let cropped = reshape(rgb2gray(tf.slice(joined_image, [0, start], [h, size])));
         let prediction = model.predict(cropped);
-        order.push(convertPrediction(prediction));
+        order.push(prediction);
     }
     console.log('Order detected');
-    console.log(order);
+    let ordered_numbers = generate_numbers(order);
+    console.log(ordered_numbers);
+
+    console.log('Numbers detected');
+    console.log(numbers);
 
     // Logic for pressing the buttons
+    for(let n of ordered_numbers) {
+        let pos = numbers.indexOf(n);
+        await delay(getRandomTime(800, 1500));
+        console.log('Clicked ' + (n+1) + ' at ' + (pos+1));
+        buttons[pos].click();
+    }
 
     let submitButton = form.querySelector('button');
-});
+    await delay(getRandomTime(1500, 2000));
+    console.log('Clicked submit button');
+    submitButton.click();
+}
+
+
+const MODEL_URL = 'https://raw.githubusercontent.com/Juangr4/easymoney/master/tfjs_model/model.json';
+
+tf.loadGraphModel(MODEL_URL).then(start);
